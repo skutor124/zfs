@@ -62,6 +62,7 @@ extern const zfs_impl_t *zfs_impl_get_ops(const char *algo);
 extern const zfs_impl_t zfs_blake3_ops;
 extern const zfs_impl_t zfs_sha256_ops;
 extern const zfs_impl_t zfs_sha512_ops;
+extern const zfs_impl_t zfs_streebog256_ops;
 
 #ifdef	__cplusplus
 }

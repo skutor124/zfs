@@ -97,9 +97,12 @@ ICP_OBJS := \
 	algs/aes/aes_impl.o \
 	algs/aes/aes_impl_generic.o \
 	algs/aes/aes_modes.o \
-	algs/blake3/blake3.o \
-	algs/blake3/blake3_generic.o \
-	algs/blake3/blake3_impl.o \
+    algs/blake3/blake3.o \
+    algs/blake3/blake3_generic.o \
+    algs/blake3/blake3_impl.o \
+	algs/streebog/streebog_generic.o \
+	algs/streebog/streebog_tables.o \
+	algs/streebog/streebog_impl.o \
 	algs/edonr/edonr.o \
 	algs/modes/ccm.o \
 	algs/modes/gcm.o \
@@ -361,6 +364,7 @@ ZFS_OBJS := \
 	rrwlock.o \
 	sa.o \
 	sha2_zfs.o \
+	streebog_zfs.o \
 	skein_zfs.o \
 	spa.o \
 	spa_checkpoint.o \

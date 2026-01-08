@@ -20,44 +20,27 @@
  * CDDL HEADER END
  */
 
-/*
- * Copyright (c) 2022 Tino Reichardt <milky-zfs@mcmilk.de>
- */
+#ifndef _STREEBOG_IMPL_H
+#define _STREEBOG_IMPL_H
 
-#include <sys/zio_checksum.h>
-#include <sys/zfs_context.h>
-#include <sys/zfs_impl.h>
+#include <sys/streebog.h>
 
-#include <sys/blake3.h>
-#include <sys/sha2.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/*
- * impl_ops - backend for implementations of algorithms
- */
-const zfs_impl_t *impl_ops[] = {
-    &zfs_blake3_ops,
-    &zfs_sha256_ops,
-    &zfs_sha512_ops,
-    &zfs_streebog256_ops,
-    NULL
-};
+typedef void (*streebog256_transform_f)(STREEBOG256_CTX *ctx, const uint8_t *block);
 
-/*
- * zfs_impl_get_ops - Get the API functions for an impl backend
- */
-const zfs_impl_t *
-zfs_impl_get_ops(const char *algo)
-{
-	const zfs_impl_t **ops = impl_ops;
+typedef struct streebog256_ops {
+    const char *name;
+    streebog256_transform_f transform;
+    boolean_t (*is_supported)(void);
+} streebog256_ops_t;
 
-	if (!algo || !*algo)
-		return (*ops);
+const streebog256_ops_t *streebog256_get_ops(void);
 
-	for (; *ops; ops++) {
-		if (strcmp(algo, (*ops)->name) == 0)
-			break;
-	}
-
-	ASSERT3P(ops, !=, NULL);
-	return (*ops);
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* _STREEBOG_IMPL_H */

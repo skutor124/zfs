@@ -212,7 +212,8 @@
 #define	DDT_CHECKSUM_VALID(c)	\
 	(c == ZIO_CHECKSUM_SHA256 || c == ZIO_CHECKSUM_SHA512 || \
 	c == ZIO_CHECKSUM_SKEIN || c == ZIO_CHECKSUM_EDONR || \
-	c == ZIO_CHECKSUM_BLAKE3)
+	c == ZIO_CHECKSUM_BLAKE3 || \
+	c == ZIO_CHECKSUM_STREEBOG256)
 
 static kmem_cache_t *ddt_cache;
 
@@ -924,6 +925,9 @@ ddt_phys_total_refcnt(const ddt_t *ddt, const ddt_univ_phys_t *ddp)
 ddt_t *
 ddt_select(spa_t *spa, const blkptr_t *bp)
 {
+	if (!DDT_CHECKSUM_VALID(BP_GET_CHECKSUM(bp))) {
+		zfs_dbgmsg("DDT_CHECKSUM_VALID failed for checksum type %llu", (unsigned long long)BP_GET_CHECKSUM(bp));
+	}
 	ASSERT(DDT_CHECKSUM_VALID(BP_GET_CHECKSUM(bp)));
 	return (spa->spa_ddt[BP_GET_CHECKSUM(bp)]);
 }

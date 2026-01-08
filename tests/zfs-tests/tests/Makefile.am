@@ -611,6 +611,7 @@ nobase_dist_datadir_zfs_tests_tests_SCRIPTS += \
 	functional/checksum/run_edonr_test.ksh \
 	functional/checksum/run_sha2_test.ksh \
 	functional/checksum/run_skein_test.ksh \
+	functional/checksum/run_streebog256_test.ksh \
 	functional/checksum/setup.ksh \
 	functional/clean_mirror/clean_mirror_001_pos.ksh \
 	functional/clean_mirror/clean_mirror_002_pos.ksh \

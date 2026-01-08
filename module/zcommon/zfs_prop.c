@@ -92,6 +92,7 @@ zfs_prop_init(void)
 		{ "skein",	ZIO_CHECKSUM_SKEIN },
 		{ "edonr",	ZIO_CHECKSUM_EDONR },
 		{ "blake3",	ZIO_CHECKSUM_BLAKE3 },
+		{ "streebog256",	ZIO_CHECKSUM_STREEBOG256 },
 		{ NULL }
 	};
 
@@ -113,6 +114,9 @@ zfs_prop_init(void)
 		{ "blake3",	ZIO_CHECKSUM_BLAKE3 },
 		{ "blake3,verify",
 				ZIO_CHECKSUM_BLAKE3 | ZIO_CHECKSUM_VERIFY },
+		{ "streebog256",	ZIO_CHECKSUM_STREEBOG256 },
+		{ "streebog256,verify",
+				ZIO_CHECKSUM_STREEBOG256 | ZIO_CHECKSUM_VERIFY },
 		{ NULL }
 	};
 
@@ -422,12 +426,12 @@ zfs_prop_init(void)
 	    ZIO_CHECKSUM_DEFAULT, PROP_INHERIT, ZFS_TYPE_FILESYSTEM |
 	    ZFS_TYPE_VOLUME,
 	    "on | off | fletcher2 | fletcher4 | sha256 | sha512 | skein"
-	    " | edonr | blake3",
+	    " | edonr | blake3 | streebog256",
 	    "CHECKSUM", checksum_table, sfeatures);
 	zprop_register_index(ZFS_PROP_DEDUP, "dedup", ZIO_CHECKSUM_OFF,
 	    PROP_INHERIT, ZFS_TYPE_FILESYSTEM | ZFS_TYPE_VOLUME,
 	    "on | off | verify | sha256[,verify] | sha512[,verify] | "
-	    "skein[,verify] | edonr,verify | blake3[,verify]",
+	    "skein[,verify] | edonr,verify | blake3[,verify] | streebog256[,verify]",
 	    "DEDUP", dedup_table, sfeatures);
 	zprop_register_index(ZFS_PROP_COMPRESSION, "compression",
 	    ZIO_COMPRESS_DEFAULT, PROP_INHERIT,

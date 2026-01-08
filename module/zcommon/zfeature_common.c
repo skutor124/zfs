@@ -726,6 +726,7 @@ zpool_feature_init(void)
 		    blake3_deps, sfeatures);
 	}
 
+
 	zfeature_register(SPA_FEATURE_BLOCK_CLONING,
 	    "com.fudosecurity:block_cloning", "block_cloning",
 	    "Support for block cloning via Block Reference Table.",
@@ -784,6 +785,18 @@ zpool_feature_init(void)
 		    "Support for microzaps larger than 128KB.",
 		    ZFEATURE_FLAG_PER_DATASET | ZFEATURE_FLAG_READONLY_COMPAT,
 		    ZFEATURE_TYPE_BOOLEAN, large_microzap_deps, sfeatures);
+	}
+
+	{
+		static const spa_feature_t streebog256_deps[] = {
+			SPA_FEATURE_EXTENSIBLE_DATASET,
+			SPA_FEATURE_NONE
+		};
+		zfeature_register(SPA_FEATURE_STREEBOG256,
+		    "org.openzfs:streebog256", "streebog256",
+		    "Streebog-256 hash algorithm.",
+		    ZFEATURE_FLAG_PER_DATASET, ZFEATURE_TYPE_BOOLEAN,
+		    streebog256_deps, sfeatures);
 	}
 
 	zfs_mod_list_supported_free(sfeatures);

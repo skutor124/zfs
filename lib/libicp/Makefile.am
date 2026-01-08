@@ -15,7 +15,10 @@ nodist_libicp_la_SOURCES = \
 	module/icp/algs/aes/aes_modes.c \
 	module/icp/algs/blake3/blake3.c \
 	module/icp/algs/blake3/blake3_generic.c \
-	module/icp/algs/blake3/blake3_impl.c \
+    module/icp/algs/blake3/blake3_impl.c \
+    module/icp/algs/streebog/streebog_generic.c \
+    module/icp/algs/streebog/streebog_tables.c \
+    module/icp/algs/streebog/streebog_impl.c \
 	module/icp/algs/edonr/edonr.c \
 	module/icp/algs/modes/modes.c \
 	module/icp/algs/modes/gcm_generic.c \
@@ -28,7 +31,7 @@ nodist_libicp_la_SOURCES = \
 	module/icp/algs/skein/skein.c \
 	module/icp/algs/skein/skein_block.c \
 	module/icp/algs/skein/skein_iv.c \
-	module/icp/illumos-crypto.c \
+    module/icp/illumos-crypto.c \
 	module/icp/io/aes.c \
 	module/icp/io/sha2_mod.c \
 	module/icp/core/kcf_sched.c \
@@ -77,4 +80,3 @@ nodist_libicp_la_SOURCES += \
 	module/icp/asm-x86_64/blake3/blake3_sse2.S \
 	module/icp/asm-x86_64/blake3/blake3_sse41.S
 endif
-

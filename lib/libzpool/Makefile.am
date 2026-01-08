@@ -68,6 +68,7 @@ nodist_libzpool_la_SOURCES = \
 	module/zfs/aggsum.c \
 	module/zfs/arc.c \
 	module/zfs/blake3_zfs.c \
+    module/zfs/streebog_zfs.c \
 	module/zfs/blkptr.c \
 	module/zfs/bplist.c \
 	module/zfs/bpobj.c \

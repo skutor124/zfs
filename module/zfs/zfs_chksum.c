@@ -19,7 +19,6 @@
  *
  * CDDL HEADER END
  */
-
 /*
  * Copyright (c) 2021-2022 Tino Reichardt <milky-zfs@mcmilk.de>
  */
@@ -28,8 +27,8 @@
 #include <sys/zfs_context.h>
 #include <sys/zfs_chksum.h>
 #include <sys/zfs_impl.h>
-
 #include <sys/blake3.h>
+#include <sys/streebog.h>
 #include <sys/sha2.h>
 
 typedef struct {
@@ -59,28 +58,6 @@ static int chksum_stat_limit = AT_STARTUP;
 static int chksum_stat_cnt = 0;
 static void chksum_benchmark(void);
 
-/*
- * Sample output on i3-1005G1 System:
- *
- * implementation   1k      4k     16k     64k    256k      1m      4m     16m
- * edonr-generic  1278    1625    1769    1776    1783    1778    1771    1767
- * skein-generic   548     594     613     623     621     623     621     486
- * sha256-generic  255     270     281     278     279     281     283     283
- * sha256-x64      288     310     316     317     318     317     317     316
- * sha256-ssse3    304     342     351     355     356     357     356     356
- * sha256-avx      311     348     359     362     362     363     363     362
- * sha256-avx2     330     378     389     395     395     395     395     395
- * sha256-shani    908    1127    1212    1230    1233    1234    1223    1230
- * sha512-generic  359     409     431     427     429     430     428     423
- * sha512-x64      420     473     490     496     497     497     496     495
- * sha512-avx      406     522     546     560     560     560     556     560
- * sha512-avx2     464     568     601     606     609     610     607     608
- * blake3-generic  330     327     324     323     324     320     323     322
- * blake3-sse2     424    1366    1449    1468    1458    1453    1395    1408
- * blake3-sse41    453    1554    1658    1703    1689    1669    1622    1630
- * blake3-avx2     452    2013    3225    3351    3356    3261    3076    3101
- * blake3-avx512   498    2869    5269    5926    5872    5643    5014    5005
- */
 static int
 chksum_kstat_headers(char *buf, size_t size)
 {
@@ -194,6 +171,7 @@ chksum_benchit(chksum_stat_t *cs)
 	void *salt = &cs->salt.zcs_bytes;
 
 	memset(salt, 0, sizeof (cs->salt.zcs_bytes));
+
 	if (cs->init)
 		ctx = cs->init(&cs->salt);
 
@@ -212,7 +190,9 @@ chksum_benchit(chksum_stat_t *cs)
 	chksum_run(cs, abd, ctx, 2, &cs->bs4k);
 	chksum_run(cs, abd, ctx, 3, &cs->bs16k);
 	chksum_run(cs, abd, ctx, 4, &cs->bs64k);
+	chksum_run(cs, abd, ctx, 5, &cs->bs256k);
 	chksum_run(cs, abd, ctx, 6, &cs->bs1m);
+
 	abd_free(abd);
 
 	/* allocate test memory via abd non linear interface */
@@ -238,10 +218,12 @@ chksum_benchmark(void)
 	/* we need the benchmark only for the kernel module */
 	return;
 #endif
+
 	chksum_stat_t *cs;
 	uint64_t max;
 	uint32_t id, cbid = 0, id_save;
 	const zfs_impl_t *blake3 = zfs_impl_get_ops("blake3");
+	const zfs_impl_t *streebog256 = zfs_impl_get_ops("streebog256");
 	const zfs_impl_t *sha256 = zfs_impl_get_ops("sha256");
 	const zfs_impl_t *sha512 = zfs_impl_get_ops("sha512");
 
@@ -249,19 +231,19 @@ chksum_benchmark(void)
 	if (chksum_stat_limit == AT_DONE)
 		return;
 
-
 	/* count implementations */
 	chksum_stat_cnt = 1;  /* edonr */
 	chksum_stat_cnt += 1; /* skein */
 	chksum_stat_cnt += sha256->getcnt();
 	chksum_stat_cnt += sha512->getcnt();
 	chksum_stat_cnt += blake3->getcnt();
+	chksum_stat_cnt += streebog256->getcnt();
+
 	chksum_stat_data = kmem_zalloc(
 	    sizeof (chksum_stat_t) * chksum_stat_cnt, KM_SLEEP);
 
 	/* edonr - needs to be the first one here (slow CPU check) */
 	cs = &chksum_stat_data[cbid++];
-
 	/* edonr */
 	cs->init = abd_checksum_edonr_tmpl_init;
 	cs->func = abd_checksum_edonr_native;
@@ -333,6 +315,25 @@ chksum_benchmark(void)
 	}
 	blake3->setid(id_save);
 
+
+	/* streebog256 */
+	id_save = streebog256->getid();
+	for (max = 0, id = 0; id < streebog256->getcnt(); id++) {
+		streebog256->setid(id);
+		cs = &chksum_stat_data[cbid++];
+		cs->init = abd_checksum_streebog256_tmpl_init;
+		cs->func = abd_checksum_streebog256_native;
+		cs->free = abd_checksum_streebog256_tmpl_free;
+		cs->name = streebog256->name;
+		cs->impl = streebog256->getname();
+		chksum_benchit(cs);
+		if (cs->bs256k > max) {
+			max = cs->bs256k;
+			streebog256->set_fastest(id);
+		}
+	}
+	streebog256->setid(id_save);
+
 	switch (chksum_stat_limit) {
 	case AT_STARTUP:
 		/* next time we want a full benchmark */
@@ -350,6 +351,7 @@ chksum_init(void)
 {
 #ifdef _KERNEL
 	blake3_per_cpu_ctx_init();
+	streebog256_per_cpu_ctx_init();
 #endif
 
 	/* 256KiB benchmark */
@@ -387,5 +389,6 @@ chksum_fini(void)
 
 #ifdef _KERNEL
 	blake3_per_cpu_ctx_fini();
+	streebog256_per_cpu_ctx_fini();
 #endif
 }
